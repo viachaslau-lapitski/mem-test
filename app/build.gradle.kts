@@ -29,6 +29,12 @@ application {
     mainClass.set("mem.test.App")
 }
 
+tasks.jar {
+    manifest {
+        attributes["Main-Class"] = "mem.test.App"
+    }
+}
+
 tasks.named<Test>("test") {
     // Use JUnit Platform for unit tests.
     useJUnitPlatform()

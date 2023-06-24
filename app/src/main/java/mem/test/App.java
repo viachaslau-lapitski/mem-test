@@ -3,12 +3,64 @@
  */
 package mem.test;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ThreadLocalRandom;
+
 public class App {
     public String getGreeting() {
         return "Hello World!";
     }
 
-    public static void main(String[] args) {
-        System.out.println(new App().getGreeting());
+    public static void main(String[] args) throws InterruptedException {
+        if (args.length < 6) {
+            System.out.println(
+                    "Insufficient arguments. Please provide arraySize, minValue, maxValue, iterationCount, delayMs, and memoryLeakMode.");
+            return;
+        }
+
+        int arraySize = Integer.parseInt(args[0]);
+        int minValue = Integer.parseInt(args[1]);
+        int maxValue = Integer.parseInt(args[2]);
+        int iterationCount = Integer.parseInt(args[3]);
+        int delayMs = Integer.parseInt(args[4]);
+        boolean memoryLeakMode = Boolean.parseBoolean(args[5]);
+
+        System.out.println("Program Summary:");
+        System.out.println("Array Size: " + arraySize);
+        System.out.println("Min Value: " + minValue);
+        System.out.println("Max Value: " + maxValue);
+        System.out.println("Iteration Count: " + iterationCount);
+        System.out.println("Delay (ms): " + delayMs);
+        System.out.println("Memory Leak Mode: " + memoryLeakMode);
+        System.out.println();
+
+        Map<Integer, List<int[]>> hashMap = new HashMap<>();
+
+        for (int i = 0; i < iterationCount; ++i) {
+            Item result = allocate(arraySize, minValue, maxValue);
+
+            System.out.println(LocalDateTime.now() + ",\t Hash: " + result.hash());
+
+            if (memoryLeakMode) {
+                List<int[]> arrayList = hashMap.computeIfAbsent(result.hash(), key -> new ArrayList<>());
+                arrayList.add(result.array());
+            }
+
+            Thread.sleep(delayMs);
+        }
+    }
+
+    private static Item allocate(int arraySize, int minValue, int maxValue) {
+        int[] array = ThreadLocalRandom.current().ints(arraySize, minValue, maxValue).toArray();
+        int hash = Arrays.hashCode(array);
+        return new Item(array, hash);
+    }
+
+    private record Item(int[] array, int hash) {
     }
 }
